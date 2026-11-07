@@ -1,0 +1,8 @@
+{
+  "name": "Calypso · General Ledger & Billing",
+  "description": "Modern minimalist general ledger, double-entry accounting engine, and billing management system with financial statements and audit trail.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

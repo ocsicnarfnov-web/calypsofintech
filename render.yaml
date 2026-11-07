@@ -1,0 +1,26 @@
+services:
+  # 1. Full-Stack Web Service (Node.js 22 + Express + Static Assets + Health API)
+  - type: web
+    name: calypso-ledger
+    runtime: node
+    plan: starter
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22.14.0
+      - key: NODE_ENV
+        value: production
+    autoDeploy: true
+
+  # 2. Static Site Alternative (Direct CDN Hosting)
+  - type: static
+    name: calypso-static
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    autoDeploy: true
