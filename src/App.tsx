@@ -22,6 +22,7 @@ import { AccountDetailDrawer } from './components/accounts/AccountDetailDrawer';
 import { CustomerModal } from './components/customers/CustomerModal';
 import { ArchitectureModal } from './components/architecture/ArchitectureModal';
 import { RenderDeployModal } from './components/deploy/RenderDeployModal';
+import { SupabaseDeployModal } from './components/deploy/SupabaseDeployModal';
 import { Account, Customer, Invoice } from './types/accounting';
 
 function AppContent() {
@@ -56,6 +57,7 @@ function AppContent() {
   const [isAddAccountModalOpen, setIsAddAccountModalOpen] = useState(false);
   const [isArchitectureModalOpen, setIsArchitectureModalOpen] = useState(false);
   const [isDeployModalOpen, setIsDeployModalOpen] = useState(false);
+  const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
 
   const [selectedInvoiceForDetail, setSelectedInvoiceForDetail] = useState<Invoice | null>(null);
   const [selectedInvoiceForPayment, setSelectedInvoiceForPayment] = useState<Invoice | null>(null);
@@ -86,6 +88,7 @@ function AppContent() {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
         onOpenArchitectureModal={() => setIsArchitectureModalOpen(true)}
+        onOpenSupabaseModal={() => setIsSupabaseModalOpen(true)}
       />
 
       {/* Main Viewport Content */}
@@ -101,6 +104,7 @@ function AppContent() {
           onOpenJournalModal={() => setIsJournalModalOpen(true)}
           onOpenArchitectureModal={() => setIsArchitectureModalOpen(true)}
           onOpenDeployModal={() => setIsDeployModalOpen(true)}
+          onOpenSupabaseModal={() => setIsSupabaseModalOpen(true)}
         />
 
         <main className="flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto">
@@ -223,6 +227,11 @@ function AppContent() {
       <RenderDeployModal
         isOpen={isDeployModalOpen}
         onClose={() => setIsDeployModalOpen(false)}
+      />
+
+      <SupabaseDeployModal
+        isOpen={isSupabaseModalOpen}
+        onClose={() => setIsSupabaseModalOpen(false)}
       />
     </div>
   );

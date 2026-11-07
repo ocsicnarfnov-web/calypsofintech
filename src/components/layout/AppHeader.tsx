@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sun, Moon, Plus, FileText, Layers, ShieldCheck } from 'lucide-react';
+import { Sun, Moon, Plus, FileText, Layers, ShieldCheck, Database, Cloud } from 'lucide-react';
 import { useAccounting } from '../../context/AccountingContext';
 import { formatCurrency } from '../../utils/formatters';
 
@@ -11,6 +11,7 @@ interface AppHeaderProps {
   onOpenJournalModal: () => void;
   onOpenArchitectureModal: () => void;
   onOpenDeployModal: () => void;
+  onOpenSupabaseModal: () => void;
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
@@ -21,6 +22,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onOpenJournalModal,
   onOpenArchitectureModal,
   onOpenDeployModal,
+  onOpenSupabaseModal,
 }) => {
   const { trialBalance, companyProfile } = useAccounting();
 
@@ -53,13 +55,13 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       </div>
 
       {/* Zone 2: BIR System Integrity & CAS Permit */}
-      <div className="hidden lg:flex items-center gap-4 text-xs">
+      <div className="hidden lg:flex items-center gap-3 text-xs">
         <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-neutral-100/80 dark:bg-neutral-800/80 text-neutral-600 dark:text-neutral-300 font-mono tabular-nums">
-          <span className="text-neutral-400 dark:text-neutral-500">BIR CAS Balance:</span>
+          <span className="text-neutral-400 dark:text-neutral-500">BIR CAS:</span>
           {trialBalance.isBalanced ? (
             <span className="text-emerald-700 dark:text-emerald-400 font-medium flex items-center gap-1">
               <ShieldCheck className="h-3.5 w-3.5" />
-              <span>Balanced · ₱0.00 Variance</span>
+              <span>Balanced</span>
             </span>
           ) : (
             <span className="text-rose-700 dark:text-rose-400 font-medium">
@@ -72,6 +74,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           type="button"
           onClick={onOpenArchitectureModal}
           className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors whitespace-nowrap"
+          title="BIR CAS & EOPT Architecture"
         >
           <Layers className="h-3.5 w-3.5 text-neutral-400" />
           <span>BIR Blueprint</span>
@@ -79,11 +82,22 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
         <button
           type="button"
+          onClick={onOpenSupabaseModal}
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-emerald-700 dark:text-emerald-400 bg-emerald-50/70 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800 transition-colors whitespace-nowrap font-medium"
+          title="Supabase PostgreSQL Schema & Deployment Guide"
+        >
+          <Database className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+          <span>Supabase</span>
+        </button>
+
+        <button
+          type="button"
           onClick={onOpenDeployModal}
           className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors whitespace-nowrap"
+          title="Render Production Blueprint"
         >
-          <span className="w-2 h-2 rounded-full bg-neutral-400 dark:bg-neutral-500" aria-hidden="true" />
-          <span>Deploy to Render</span>
+          <Cloud className="h-3.5 w-3.5 text-neutral-400" />
+          <span>Render</span>
         </button>
       </div>
 

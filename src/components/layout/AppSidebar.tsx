@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Cpu,
   FileCheck2,
+  Database,
 } from 'lucide-react';
 import { useAccounting } from '../../context/AccountingContext';
 
@@ -17,12 +18,14 @@ interface AppSidebarProps {
   currentView: string;
   onSelectView: (view: string) => void;
   onOpenArchitectureModal: () => void;
+  onOpenSupabaseModal?: () => void;
 }
 
 export const AppSidebar: React.FC<AppSidebarProps> = ({
   currentView,
   onSelectView,
   onOpenArchitectureModal,
+  onOpenSupabaseModal,
 }) => {
   const { trialBalance, resetToDemoData, companyProfile } = useAccounting();
 
@@ -129,6 +132,21 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
           </div>
           <span className="text-[10px] font-mono text-neutral-400">v1.0</span>
         </button>
+
+        {/* Supabase Schema & Deployment */}
+        {onOpenSupabaseModal && (
+          <button
+            type="button"
+            onClick={onOpenSupabaseModal}
+            className="w-full flex items-center justify-between px-3 py-2 text-xs text-emerald-400 hover:text-emerald-300 rounded-lg hover:bg-emerald-950/40 border border-emerald-900/40 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Database className="h-3.5 w-3.5 text-emerald-400" />
+              <span className="font-medium">Supabase Migration</span>
+            </div>
+            <span className="text-[10px] font-mono text-emerald-500">SQL</span>
+          </button>
+        )}
 
         {/* Reset Demo Data Button */}
         <button
