@@ -74,12 +74,12 @@ export const RenderDeployModal: React.FC<RenderDeployModalProps> = ({ isOpen, on
               <div>
                 <span className="text-[11px] text-neutral-400 block font-sans">Build Command:</span>
                 <span className="text-neutral-900 dark:text-neutral-100 font-semibold">
-                  npm install && npm run build
+                  npm install --legacy-peer-deps && npm run build
                 </span>
               </div>
               <button
                 type="button"
-                onClick={() => copyToClipboard('build', 'npm install && npm run build')}
+                onClick={() => copyToClipboard('build', 'npm install --legacy-peer-deps && npm run build')}
                 className="p-1.5 text-neutral-500 hover:text-neutral-900 dark:hover:text-white rounded"
                 title="Copy build command"
               >
