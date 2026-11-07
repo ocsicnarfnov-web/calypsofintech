@@ -34,7 +34,7 @@ export const RenderDeployModal: React.FC<RenderDeployModalProps> = ({ isOpen, on
                 Render Ready · Configuration Injected
               </span>
               <span className="text-emerald-700 dark:text-emerald-300 text-[11px]">
-                <code>render.yaml</code>, <code>server.ts</code>, and <code>package.json</code> start script are configured.
+                <code>render.yaml</code>, <code>server.js</code>, and <code>package.json</code> start script are configured.
               </span>
             </div>
           </div>
