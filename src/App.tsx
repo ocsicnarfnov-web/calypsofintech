@@ -26,6 +26,8 @@ import { ArchitectureModal } from './components/architecture/ArchitectureModal';
 import { RenderDeployModal } from './components/deploy/RenderDeployModal';
 import { SupabaseDeployModal } from './components/deploy/SupabaseDeployModal';
 import { CompanyProfileModal } from './components/profile/CompanyProfileModal';
+import { AddCompanyModal } from './components/company/AddCompanyModal';
+import { NewLedgerModal } from './components/ledger/NewLedgerModal';
 import { AuthModal } from './components/auth/AuthModal';
 import { Account, Customer, Invoice } from './types/accounting';
 
@@ -63,6 +65,8 @@ function AppContent() {
   const [isDeployModalOpen, setIsDeployModalOpen] = useState(false);
   const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
   const [isCompanyProfileModalOpen, setIsCompanyProfileModalOpen] = useState(false);
+  const [isAddCompanyModalOpen, setIsAddCompanyModalOpen] = useState(false);
+  const [isNewLedgerModalOpen, setIsNewLedgerModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
 
@@ -102,6 +106,8 @@ function AppContent() {
         onOpenArchitectureModal={() => setIsArchitectureModalOpen(true)}
         onOpenSupabaseModal={() => setIsSupabaseModalOpen(true)}
         onOpenCompanyProfileModal={() => setIsCompanyProfileModalOpen(true)}
+        onOpenAddCompanyModal={() => setIsAddCompanyModalOpen(true)}
+        onOpenNewLedgerModal={() => setIsNewLedgerModalOpen(true)}
       />
 
       {/* Main Viewport Content */}
@@ -119,6 +125,8 @@ function AppContent() {
           onOpenDeployModal={() => setIsDeployModalOpen(true)}
           onOpenSupabaseModal={() => setIsSupabaseModalOpen(true)}
           onOpenCompanyProfileModal={() => setIsCompanyProfileModalOpen(true)}
+          onOpenAddCompanyModal={() => setIsAddCompanyModalOpen(true)}
+          onOpenNewLedgerModal={() => setIsNewLedgerModalOpen(true)}
           onOpenAuthModal={handleOpenAuth}
           onNavigateToUsers={() => {
             setCurrentView('users');
@@ -154,6 +162,7 @@ function AppContent() {
           {currentView === 'ledger' && (
             <GeneralLedgerView
               onOpenJournalModal={() => setIsJournalModalOpen(true)}
+              onOpenNewLedgerModal={() => setIsNewLedgerModalOpen(true)}
               highlightEntryNumber={highlightedJournalEntry}
             />
           )}
@@ -262,6 +271,16 @@ function AppContent() {
       <CompanyProfileModal
         isOpen={isCompanyProfileModalOpen}
         onClose={() => setIsCompanyProfileModalOpen(false)}
+      />
+
+      <AddCompanyModal
+        isOpen={isAddCompanyModalOpen}
+        onClose={() => setIsAddCompanyModalOpen(false)}
+      />
+
+      <NewLedgerModal
+        isOpen={isNewLedgerModalOpen}
+        onClose={() => setIsNewLedgerModalOpen(false)}
       />
 
       <AuthModal

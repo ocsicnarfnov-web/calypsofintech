@@ -3,6 +3,7 @@ import { Modal } from '../common/Modal';
 import { Customer, PaymentTerms } from '../../types/accounting';
 import { useAccounting } from '../../context/AccountingContext';
 import { formatTin } from '../../utils/formatters';
+import { RdoSelector } from '../common/RdoSelector';
 
 interface CustomerModalProps {
   customer?: Customer | null;
@@ -29,6 +30,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
   const [zip, setZip] = useState('');
   const [tin, setTin] = useState('');
   const [branchCode, setBranchCode] = useState('00000');
+  const [rdoCode, setRdoCode] = useState('RDO 044 - Taguig / Pateros');
   const [businessStyle, setBusinessStyle] = useState('');
   const [isVatRegistered, setIsVatRegistered] = useState(true);
   const [paymentTerms, setPaymentTerms] = useState<PaymentTerms>('net_30');
@@ -48,6 +50,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
       setZip(customer.address.zip);
       setTin(customer.tin);
       setBranchCode(customer.branchCode || '00000');
+      setRdoCode(customer.rdoCode || 'RDO 044 - Taguig / Pateros');
       setBusinessStyle(customer.businessStyle);
       setIsVatRegistered(customer.isVatRegistered);
       setPaymentTerms(customer.paymentTerms);
@@ -64,6 +67,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
       setZip('1634');
       setTin('');
       setBranchCode('00000');
+      setRdoCode('RDO 044 - Taguig / Pateros');
       setBusinessStyle('Information Technology & Professional Services');
       setIsVatRegistered(true);
       setPaymentTerms('net_30');
@@ -101,6 +105,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
       },
       tin: formatTin(tin.trim()),
       branchCode: branchCode.trim() || '00000',
+      rdoCode: rdoCode.trim() || undefined,
       businessStyle: businessStyle.trim() || 'Commercial Services',
       isVatRegistered,
       paymentTerms,
@@ -217,6 +222,13 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
             className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-neutral-100 focus:outline-hidden"
           />
         </div>
+
+        <RdoSelector
+          label="Customer BIR Revenue District Office (RDO)"
+          value={rdoCode}
+          onChange={(val) => setRdoCode(val)}
+          helperText="Jurisdiction used for Form 2307 Withholding Tax Certificates & SAWT alphalists."
+        />
 
         <div className="grid grid-cols-2 gap-3">
           <div>

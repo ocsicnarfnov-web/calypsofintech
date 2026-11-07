@@ -11,6 +11,7 @@ import {
   PaymentTerms,
   VatType,
   BirForm2307Record,
+  GeneralLedgerBook,
 } from '../types/accounting';
 import {
   INITIAL_ACCOUNTS,
@@ -19,6 +20,8 @@ import {
   INITIAL_JOURNAL_ENTRIES,
   INITIAL_RECURRING_SCHEDULES,
   INITIAL_COMPANY_PROFILE,
+  INITIAL_COMPANIES,
+  INITIAL_LEDGERS,
 } from '../data/seedData';
 
 interface TrialBalanceRow {
@@ -147,7 +150,20 @@ interface AccountingContextType {
   toggleRecurringSchedule: (id: string) => void;
   runRecurringSchedule: (id: string) => { success: boolean; invoiceId?: string };
   resetToDemoData: () => void;
-  updateCompanyProfile: (profile: Partial<CompanyProfile>) => void;
+  updateCompanyProfile: (profile: Partial<CompanyProfile>, companyId?: string) => void;
+  // Multi-Company
+  companies: CompanyProfile[];
+  activeCompanyId: string;
+  addCompany: (company: Omit<CompanyProfile, 'id'>) => CompanyProfile;
+  switchCompany: (companyId: string) => void;
+  deleteCompany: (companyId: string) => { success: boolean; error?: string };
+  // Multi-Ledger
+  ledgers: GeneralLedgerBook[];
+  activeLedgerId: string;
+  activeLedger: GeneralLedgerBook;
+  addLedger: (ledger: Omit<GeneralLedgerBook, 'id' | 'createdAt'>, cloneAccountsFromId?: string) => GeneralLedgerBook;
+  switchLedger: (ledgerId: string) => void;
+  updateLedger: (ledgerId: string, updates: Partial<GeneralLedgerBook>) => void;
   // BIR Books of Accounts
   getSalesJournal: () => BirSalesJournalRow[];
   getCashReceiptsJournal: () => BirCashReceiptsRow[];
@@ -161,6 +177,10 @@ const STORAGE_KEYS = {
   JOURNAL_ENTRIES: 'calypso_journal_ph_v2',
   RECURRING: 'calypso_recurring_ph_v2',
   COMPANY: 'calypso_company_ph_v2',
+  COMPANIES: 'calypso_companies_ph_v3',
+  ACTIVE_COMPANY_ID: 'calypso_active_company_id_v3',
+  LEDGERS: 'calypso_ledgers_ph_v3',
+  ACTIVE_LEDGER_ID: 'calypso_active_ledger_id_v3',
 };
 
 const AccountingContext = createContext<AccountingContextType | undefined>(undefined);
@@ -211,26 +231,194 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   });
 
-  const [companyProfile, setCompanyProfile] = useState<CompanyProfile>(() => {
+  // Multi-Company State
+  const [companies, setCompanies] = useState<CompanyProfile[]>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEYS.COMPANY);
-      return saved ? JSON.parse(saved) : INITIAL_COMPANY_PROFILE;
+      const saved = localStorage.getItem(STORAGE_KEYS.COMPANIES);
+      return saved ? JSON.parse(saved) : INITIAL_COMPANIES;
     } catch {
-      return INITIAL_COMPANY_PROFILE;
+      return INITIAL_COMPANIES;
     }
   });
 
-  const updateCompanyProfile = (updates: Partial<CompanyProfile>) => {
-    setCompanyProfile((prev) => {
-      const next = { ...prev, ...updates };
+  const [activeCompanyId, setActiveCompanyId] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.ACTIVE_COMPANY_ID);
+      return saved || INITIAL_COMPANIES[0].id || 'comp-001';
+    } catch {
+      return 'comp-001';
+    }
+  });
+
+  // Multi-Ledger State
+  const [ledgers, setLedgers] = useState<GeneralLedgerBook[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.LEDGERS);
+      return saved ? JSON.parse(saved) : INITIAL_LEDGERS;
+    } catch {
+      return INITIAL_LEDGERS;
+    }
+  });
+
+  const [activeLedgerId, setActiveLedgerId] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.ACTIVE_LEDGER_ID);
+      return saved || INITIAL_LEDGERS[0].id || 'ledger-001';
+    } catch {
+      return 'ledger-001';
+    }
+  });
+
+  const companyProfile = useMemo(() => {
+    return companies.find((c) => c.id === activeCompanyId) || companies[0] || INITIAL_COMPANY_PROFILE;
+  }, [companies, activeCompanyId]);
+
+  const activeLedger = useMemo(() => {
+    return (
+      ledgers.find((l) => l.id === activeLedgerId) ||
+      ledgers.find((l) => l.companyId === activeCompanyId) ||
+      ledgers[0] ||
+      INITIAL_LEDGERS[0]
+    );
+  }, [ledgers, activeLedgerId, activeCompanyId]);
+
+  const updateCompanyProfile = (updates: Partial<CompanyProfile>, targetCompanyId?: string) => {
+    const idToUpdate = targetCompanyId || activeCompanyId;
+    setCompanies((prev) => {
+      const next = prev.map((c) => (c.id === idToUpdate ? { ...c, ...updates } : c));
       try {
-        localStorage.setItem(STORAGE_KEYS.COMPANY, JSON.stringify(next));
+        localStorage.setItem(STORAGE_KEYS.COMPANIES, JSON.stringify(next));
       } catch (e) {
-        console.error('Failed to save company profile', e);
+        console.error('Failed to save companies', e);
       }
       return next;
     });
   };
+
+  const addCompany = (companyData: Omit<CompanyProfile, 'id'>): CompanyProfile => {
+    const newId = `comp-${Date.now()}`;
+    const newComp: CompanyProfile = {
+      ...companyData,
+      id: newId,
+    };
+
+    // Automatically create a default Primary Statutory General Ledger for the company
+    const newPrimaryLedger: GeneralLedgerBook = {
+      id: `ledger-${Date.now()}`,
+      companyId: newId,
+      name: `${newComp.name} Statutory General Ledger (PHP)`,
+      code: `GL-${new Date().getFullYear()}-${newComp.name.slice(0, 3).toUpperCase().replace(/[^A-Z]/g, 'X')}`,
+      type: 'statutory',
+      currency: newComp.currency || 'PHP',
+      currencySymbol: newComp.currency === 'USD' ? '$' : '₱',
+      fiscalYear: new Date().getFullYear().toString(),
+      isPrimary: true,
+      status: 'active',
+      description: `Official BIR CAS statutory books of accounts for ${newComp.legalName}.`,
+      createdAt: new Date().toISOString(),
+    };
+
+    setCompanies((prev) => [newComp, ...prev]);
+    setLedgers((prev) => [newPrimaryLedger, ...prev]);
+    setActiveCompanyId(newId);
+    setActiveLedgerId(newPrimaryLedger.id);
+
+    return newComp;
+  };
+
+  const switchCompany = (companyId: string) => {
+    const targetComp = companies.find((c) => c.id === companyId);
+    if (!targetComp) return;
+
+    setActiveCompanyId(companyId);
+
+    // Switch active ledger to primary statutory ledger of this company
+    const compLedger =
+      ledgers.find((l) => l.companyId === companyId && l.isPrimary) ||
+      ledgers.find((l) => l.companyId === companyId);
+
+    if (compLedger) {
+      setActiveLedgerId(compLedger.id);
+    }
+  };
+
+  const deleteCompany = (companyId: string): { success: boolean; error?: string } => {
+    if (companies.length <= 1) {
+      return { success: false, error: 'Cannot delete the only registered company entity.' };
+    }
+
+    setCompanies((prev) => prev.filter((c) => c.id !== companyId));
+    setLedgers((prev) => prev.filter((l) => l.companyId !== companyId));
+
+    if (activeCompanyId === companyId) {
+      const remaining = companies.filter((c) => c.id !== companyId);
+      if (remaining.length > 0) {
+        switchCompany(remaining[0].id || 'comp-001');
+      }
+    }
+
+    return { success: true };
+  };
+
+  const addLedger = (
+    ledgerData: Omit<GeneralLedgerBook, 'id' | 'createdAt'>
+  ): GeneralLedgerBook => {
+    const newId = `ledger-${Date.now()}`;
+    const targetCompanyId = ledgerData.companyId || activeCompanyId;
+
+    const newLedger: GeneralLedgerBook = {
+      ...ledgerData,
+      id: newId,
+      companyId: targetCompanyId,
+      createdAt: new Date().toISOString(),
+    };
+
+    setLedgers((prev) => {
+      let updated = prev;
+      if (newLedger.isPrimary) {
+        updated = updated.map((l) =>
+          l.companyId === targetCompanyId ? { ...l, isPrimary: false } : l
+        );
+      }
+      return [newLedger, ...updated];
+    });
+
+    setActiveLedgerId(newId);
+    return newLedger;
+  };
+
+  const switchLedger = (ledgerId: string) => {
+    const target = ledgers.find((l) => l.id === ledgerId);
+    if (target) {
+      setActiveLedgerId(ledgerId);
+      if (target.companyId && target.companyId !== activeCompanyId) {
+        setActiveCompanyId(target.companyId);
+      }
+    }
+  };
+
+  const updateLedger = (ledgerId: string, updates: Partial<GeneralLedgerBook>) => {
+    setLedgers((prev) =>
+      prev.map((l) => (l.id === ledgerId ? { ...l, ...updates } : l))
+    );
+  };
+
+  // Local storage synchronization for companies and ledgers
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.COMPANIES, JSON.stringify(companies));
+  }, [companies]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.ACTIVE_COMPANY_ID, activeCompanyId);
+  }, [activeCompanyId]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.LEDGERS, JSON.stringify(ledgers));
+  }, [ledgers]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.ACTIVE_LEDGER_ID, activeLedgerId);
+  }, [activeLedgerId]);
 
   // Local storage synchronization
   useEffect(() => {
@@ -1133,6 +1321,17 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         runRecurringSchedule,
         resetToDemoData,
         updateCompanyProfile,
+        companies,
+        activeCompanyId,
+        addCompany,
+        switchCompany,
+        deleteCompany,
+        ledgers,
+        activeLedgerId,
+        activeLedger,
+        addLedger,
+        switchLedger,
+        updateLedger,
         getSalesJournal,
         getCashReceiptsJournal,
         getBir2307Records,

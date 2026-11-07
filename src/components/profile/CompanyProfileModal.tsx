@@ -20,24 +20,7 @@ interface CompanyProfileModalProps {
   onClose: () => void;
 }
 
-const PHILIPPINE_RDOS = [
-  { code: 'RDO 044', name: 'RDO 044 - Taguig / Pateros' },
-  { code: 'RDO 047', name: 'RDO 047 - East Makati' },
-  { code: 'RDO 048', name: 'RDO 048 - West Makati' },
-  { code: 'RDO 049', name: 'RDO 049 - North Makati' },
-  { code: 'RDO 050', name: 'RDO 050 - South Manila' },
-  { code: 'RDO 039', name: 'RDO 039 - South Quezon City' },
-  { code: 'RDO 040', name: 'RDO 040 - North Quezon City' },
-  { code: 'RDO 041', name: 'RDO 041 - Mandaluyong' },
-  { code: 'RDO 043', name: 'RDO 043 - Pasig' },
-  { code: 'RDO 051', name: 'RDO 051 - Pasay' },
-  { code: 'RDO 052', name: 'RDO 052 - Paranaque' },
-  { code: 'RDO 053', name: 'RDO 053 - Alabang / Muntinlupa' },
-  { code: 'RDO 080', name: 'RDO 080 - Mandaue City, Cebu' },
-  { code: 'RDO 081', name: 'RDO 081 - Cebu City North' },
-  { code: 'RDO 113', name: 'RDO 113 - West Davao City' },
-  { code: 'RDO 028', name: 'RDO 028 - San Fernando, Pampanga' },
-];
+import { RdoSelector } from '../common/RdoSelector';
 
 export const CompanyProfileModal: React.FC<CompanyProfileModalProps> = ({ isOpen, onClose }) => {
   const { companyProfile, updateCompanyProfile } = useAccounting();
@@ -246,23 +229,14 @@ export const CompanyProfileModal: React.FC<CompanyProfileModalProps> = ({ isOpen
                 </span>
               </div>
 
-              <div>
-                <label className="block text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1">
-                  BIR Revenue District Office (RDO) *
-                </label>
-                <select
-                  disabled={!canEdit}
-                  value={formData.rdoCode}
-                  onChange={(e) => setFormData({ ...formData, rdoCode: e.target.value })}
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-1 focus:ring-neutral-800 disabled:opacity-60"
-                >
-                  {PHILIPPINE_RDOS.map((r) => (
-                    <option key={r.code} value={r.name}>
-                      {r.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <RdoSelector
+                label="BIR Revenue District Office (RDO)"
+                required
+                disabled={!canEdit}
+                value={formData.rdoCode}
+                onChange={(val) => setFormData({ ...formData, rdoCode: val })}
+                helperText="Official BIR district jurisdiction accredited under CAS Permit."
+              />
             </div>
           </div>
         )}

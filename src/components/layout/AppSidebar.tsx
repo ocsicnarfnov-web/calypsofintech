@@ -13,6 +13,7 @@ import {
   Database,
   Building2,
   UserCog,
+  Plus
 } from 'lucide-react';
 import { useAccounting } from '../../context/AccountingContext';
 
@@ -22,6 +23,8 @@ interface AppSidebarProps {
   onOpenArchitectureModal: () => void;
   onOpenSupabaseModal?: () => void;
   onOpenCompanyProfileModal?: () => void;
+  onOpenAddCompanyModal?: () => void;
+  onOpenNewLedgerModal?: () => void;
 }
 
 export const AppSidebar: React.FC<AppSidebarProps> = ({
@@ -30,8 +33,10 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   onOpenArchitectureModal,
   onOpenSupabaseModal,
   onOpenCompanyProfileModal,
+  onOpenAddCompanyModal,
+  onOpenNewLedgerModal,
 }) => {
-  const { trialBalance, resetToDemoData, companyProfile } = useAccounting();
+  const { trialBalance, resetToDemoData, companyProfile, activeLedger } = useAccounting();
 
   const navItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -74,9 +79,71 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
           </div>
         </div>
 
+        {/* Active Entity & Ledger Scope Bar */}
+        <div className="px-3 py-2.5 mx-3 mt-3 rounded-lg bg-neutral-950/60 border border-neutral-800/70 text-xs space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 font-semibold">
+              Scope
+            </span>
+            <div className="flex items-center gap-1.5">
+              {onOpenAddCompanyModal && (
+                <button
+                  type="button"
+                  onClick={onOpenAddCompanyModal}
+                  className="p-1 rounded text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
+                  title="Register new legal entity / company"
+                >
+                  <Plus className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-neutral-400 truncate max-w-[130px]">
+                {companyProfile.name}
+              </span>
+              <span className="font-mono text-[9px] px-1 py-0.2 rounded bg-neutral-800 text-neutral-300">
+                {companyProfile.branchCode ? `Br ${companyProfile.branchCode}` : 'HQ'}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between text-[11px] font-mono">
+              <span className="text-neutral-300 truncate font-semibold">
+                {activeLedger?.code || 'GL-2026-PHP'}
+              </span>
+              <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-800/50">
+                {activeLedger?.currency || 'PHP'}
+              </span>
+            </div>
+          </div>
+
+          <div className="pt-1.5 border-t border-neutral-800/60 flex items-center justify-between gap-1 text-[10px]">
+            {onOpenAddCompanyModal && (
+              <button
+                type="button"
+                onClick={onOpenAddCompanyModal}
+                className="flex-1 py-1 px-1.5 rounded bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white text-center transition-colors font-medium border border-neutral-800"
+              >
+                + Entity
+              </button>
+            )}
+            {onOpenNewLedgerModal && (
+              <button
+                type="button"
+                onClick={onOpenNewLedgerModal}
+                className="flex-1 py-1 px-1.5 rounded bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white text-center transition-colors font-medium border border-neutral-800"
+              >
+                + Ledger
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Navigation items */}
         <nav className="p-3 space-y-1">
-          <div className="px-3 pt-3 pb-1.5 text-[11px] font-medium tracking-wider text-neutral-400 uppercase">
+          <div className="px-3 pt-2 pb-1.5 text-[11px] font-medium tracking-wider text-neutral-400 uppercase">
             Platform Engine
           </div>
 

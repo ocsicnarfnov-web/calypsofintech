@@ -152,12 +152,18 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
                   <span className="text-xs font-bold text-neutral-900 dark:text-neutral-100 mt-0.5 block truncate">
                     {formatTin(selectedCustomer.tin)}
                   </span>
+                  <span className="text-[10px] text-neutral-400 font-sans block mt-0.5 truncate">
+                    {selectedCustomer.rdoCode ? selectedCustomer.rdoCode.split('-')[0].trim() : 'RDO 044'}
+                  </span>
                 </div>
 
                 <div className="p-3 rounded-lg bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200/60 dark:border-neutral-700/50">
                   <span className="text-[11px] text-neutral-400 font-sans block">Tax Classification</span>
                   <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 mt-0.5 block font-sans">
                     {selectedCustomer.isVatRegistered ? 'VAT Registered' : 'Non-VAT'}
+                  </span>
+                  <span className="text-[10px] text-neutral-400 font-mono block mt-0.5">
+                    12% Output VAT
                   </span>
                 </div>
 

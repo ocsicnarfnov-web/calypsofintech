@@ -13,7 +13,10 @@ import {
   LogOut,
   UserPlus,
   ChevronDown,
-  LogIn
+  LogIn,
+  Check,
+  BookOpen,
+  PlusCircle
 } from 'lucide-react';
 import { useAccounting } from '../../context/AccountingContext';
 import { useAuth } from '../../context/AuthContext';
@@ -29,6 +32,8 @@ interface AppHeaderProps {
   onOpenDeployModal: () => void;
   onOpenSupabaseModal: () => void;
   onOpenCompanyProfileModal: () => void;
+  onOpenAddCompanyModal: () => void;
+  onOpenNewLedgerModal: () => void;
   onOpenAuthModal: (mode?: 'login' | 'register') => void;
   onNavigateToUsers: () => void;
 }
@@ -43,19 +48,44 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onOpenDeployModal,
   onOpenSupabaseModal,
   onOpenCompanyProfileModal,
+  onOpenAddCompanyModal,
+  onOpenNewLedgerModal,
   onOpenAuthModal,
   onNavigateToUsers,
 }) => {
-  const { trialBalance, companyProfile } = useAccounting();
+  const { 
+    trialBalance, 
+    companyProfile, 
+    companies, 
+    activeCompanyId, 
+    switchCompany,
+    ledgers, 
+    activeLedgerId, 
+    activeLedger, 
+    switchLedger 
+  } = useAccounting();
   const { currentUser, logout, isAuthenticated } = useAuth();
+  
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isCompanyMenuOpen, setIsCompanyMenuOpen] = useState(false);
+  const [isLedgerMenuOpen, setIsLedgerMenuOpen] = useState(false);
+  
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const companyMenuRef = useRef<HTMLDivElement>(null);
+  const ledgerMenuRef = useRef<HTMLDivElement>(null);
 
-  // Close user menu on outside click
+  // Close menus on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (userMenuRef.current && !userMenuRef.current.contains(target)) {
         setIsUserMenuOpen(false);
+      }
+      if (companyMenuRef.current && !companyMenuRef.current.contains(target)) {
+        setIsCompanyMenuOpen(false);
+      }
+      if (ledgerMenuRef.current && !ledgerMenuRef.current.contains(target)) {
+        setIsLedgerMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -75,24 +105,199 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   const current = viewTitles[currentView] || { title: 'Calypso', category: 'Workspace' };
   const currentRoleDef = currentUser?.role ? ROLE_DEFINITIONS[currentUser.role] : null;
 
+  // Filter ledgers that belong to active company
+  const companyLedgers = ledgers.filter(
+    (l) => !l.companyId || l.companyId === activeCompanyId
+  );
+
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between gap-4 px-6 py-3 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800 transition-colors">
-      {/* Zone 1: Breadcrumb Hierarchy with BIR RDO */}
+      {/* Zone 1: Multi-Company & Multi-Ledger Selectors */}
       <div className="flex items-center gap-2 min-w-0">
-        <button
-          type="button"
-          onClick={onOpenCompanyProfileModal}
-          className="text-xs font-mono font-semibold text-neutral-800 dark:text-neutral-200 hover:text-neutral-950 dark:hover:text-white underline-offset-4 hover:underline transition-colors truncate"
-          title="Click to view & edit company tax profile"
-        >
-          {companyProfile.name}
-        </button>
+        {/* Company Entity Selector Dropdown */}
+        <div className="relative" ref={companyMenuRef}>
+          <button
+            type="button"
+            onClick={() => {
+              setIsCompanyMenuOpen(!isCompanyMenuOpen);
+              setIsLedgerMenuOpen(false);
+              setIsUserMenuOpen(false);
+            }}
+            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-neutral-900 dark:text-neutral-100 bg-neutral-100/90 dark:bg-neutral-800/90 hover:bg-neutral-200/80 dark:hover:bg-neutral-700/80 rounded-lg border border-neutral-200 dark:border-neutral-700 transition-colors max-w-[200px] truncate"
+            title="Switch active company entity or register a new one"
+          >
+            <Building2 className="h-3.5 w-3.5 text-neutral-500 shrink-0" />
+            <span className="truncate">{companyProfile.name}</span>
+            <ChevronDown className="h-3 w-3 text-neutral-400 shrink-0" />
+          </button>
+
+          {isCompanyMenuOpen && (
+            <div className="absolute left-0 mt-1.5 w-72 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-xl py-1.5 z-50 text-xs animate-in fade-in zoom-in-95 duration-100">
+              <div className="px-3 py-1.5 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
+                <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider font-mono">
+                  Corporate Entities ({companies.length})
+                </span>
+                <span className="text-[10px] text-neutral-400 font-mono">BIR CAS</span>
+              </div>
+
+              <div className="max-h-60 overflow-y-auto py-1 divide-y divide-neutral-100/60 dark:divide-neutral-800/60">
+                {companies.map((c) => {
+                  const isActive = (c.id || 'comp-001') === activeCompanyId;
+                  return (
+                    <button
+                      key={c.id || c.tin}
+                      type="button"
+                      onClick={() => {
+                        switchCompany(c.id || 'comp-001');
+                        setIsCompanyMenuOpen(false);
+                      }}
+                      className={`w-full flex items-start justify-between gap-2 px-3 py-2 text-left hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors ${
+                        isActive ? 'bg-neutral-50 dark:bg-neutral-800/60 font-semibold' : ''
+                      }`}
+                    >
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-neutral-900 dark:text-neutral-100 font-medium truncate">
+                            {c.name}
+                          </span>
+                          {c.branchCode && (
+                            <span className="text-[9px] px-1 py-0.2 rounded bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 font-mono">
+                              Br {c.branchCode}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-neutral-400 font-mono block truncate">
+                          TIN: {c.tin} · {c.rdoCode.split('-')[0].trim()}
+                        </span>
+                      </div>
+                      {isActive && <Check className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="border-t border-neutral-100 dark:border-neutral-800 pt-1.5 px-2 space-y-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCompanyMenuOpen(false);
+                    onOpenAddCompanyModal();
+                  }}
+                  className="w-full flex items-center gap-2 px-2.5 py-1.5 text-neutral-900 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg text-left transition-colors font-medium text-[11px]"
+                >
+                  <PlusCircle className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span>+ Register New Company Entity</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCompanyMenuOpen(false);
+                    onOpenCompanyProfileModal();
+                  }}
+                  className="w-full flex items-center gap-2 px-2.5 py-1.5 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg text-left transition-colors text-[11px]"
+                >
+                  <Building2 className="h-3.5 w-3.5" />
+                  <span>Edit Tax Credentials</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         <span className="text-neutral-300 dark:text-neutral-700" aria-hidden="true">/</span>
-        <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400 whitespace-nowrap hidden sm:inline">
-          {companyProfile.rdoCode.split('-')[0].trim()}
-        </span>
+
+        {/* General Ledger Book Selector Dropdown */}
+        <div className="relative" ref={ledgerMenuRef}>
+          <button
+            type="button"
+            onClick={() => {
+              setIsLedgerMenuOpen(!isLedgerMenuOpen);
+              setIsCompanyMenuOpen(false);
+              setIsUserMenuOpen(false);
+            }}
+            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono font-medium text-neutral-800 dark:text-neutral-200 bg-neutral-100/90 dark:bg-neutral-800/90 hover:bg-neutral-200/80 dark:hover:bg-neutral-700/80 rounded-lg border border-neutral-200 dark:border-neutral-700 transition-colors max-w-[210px] truncate"
+            title="Switch General Ledger Book or create a new ledger"
+          >
+            <BookOpen className="h-3.5 w-3.5 text-neutral-500 shrink-0" />
+            <span className="font-semibold">{activeLedger?.code || 'GL-2026-PHP'}</span>
+            <span className="text-[10px] px-1 py-0.2 rounded bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 font-sans">
+              {activeLedger?.currencySymbol || '₱'} {activeLedger?.currency || 'PHP'}
+            </span>
+            <ChevronDown className="h-3 w-3 text-neutral-400 shrink-0" />
+          </button>
+
+          {isLedgerMenuOpen && (
+            <div className="absolute left-0 mt-1.5 w-80 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-xl py-1.5 z-50 text-xs animate-in fade-in zoom-in-95 duration-100">
+              <div className="px-3 py-1.5 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
+                <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider font-mono">
+                  General Ledger Books ({companyLedgers.length})
+                </span>
+                <span className="text-[10px] text-neutral-400 font-mono">
+                  {companyProfile.name.split(' ')[0]}
+                </span>
+              </div>
+
+              <div className="max-h-60 overflow-y-auto py-1 divide-y divide-neutral-100/60 dark:divide-neutral-800/60">
+                {companyLedgers.map((l) => {
+                  const isActive = l.id === activeLedgerId;
+                  return (
+                    <button
+                      key={l.id}
+                      type="button"
+                      onClick={() => {
+                        switchLedger(l.id);
+                        setIsLedgerMenuOpen(false);
+                      }}
+                      className={`w-full flex items-start justify-between gap-2 px-3 py-2 text-left hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors ${
+                        isActive ? 'bg-neutral-50 dark:bg-neutral-800/60 font-semibold' : ''
+                      }`}
+                    >
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono text-neutral-900 dark:text-neutral-100 font-semibold">
+                            {l.code}
+                          </span>
+                          <span className="text-[9px] px-1.5 py-0.2 rounded font-sans uppercase font-medium bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300">
+                            {l.type}
+                          </span>
+                          {l.isPrimary && (
+                            <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-sans font-medium">
+                              Primary
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[11px] text-neutral-500 dark:text-neutral-400 block truncate">
+                          {l.name}
+                        </span>
+                        <span className="text-[10px] text-neutral-400 font-mono block">
+                          FY {l.fiscalYear} · Currency: {l.currencySymbol} {l.currency}
+                        </span>
+                      </div>
+                      {isActive && <Check className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="border-t border-neutral-100 dark:border-neutral-800 pt-1.5 px-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsLedgerMenuOpen(false);
+                    onOpenNewLedgerModal();
+                  }}
+                  className="w-full flex items-center gap-2 px-2.5 py-1.5 text-neutral-900 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg text-left transition-colors font-medium text-[11px]"
+                >
+                  <PlusCircle className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span>+ Create New General Ledger Book</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         <span className="text-neutral-300 dark:text-neutral-700 hidden sm:inline" aria-hidden="true">/</span>
-        <h1 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 truncate">
+        <h1 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 truncate hidden sm:inline">
           {current.title}
         </h1>
       </div>

@@ -15,14 +15,16 @@ import {
 
 interface GeneralLedgerViewProps {
   onOpenJournalModal: () => void;
+  onOpenNewLedgerModal?: () => void;
   highlightEntryNumber?: string;
 }
 
 export const GeneralLedgerView: React.FC<GeneralLedgerViewProps> = ({
   onOpenJournalModal,
+  onOpenNewLedgerModal,
   highlightEntryNumber,
 }) => {
-  const { journalEntries, trialBalance, reverseJournalEntry, accounts } = useAccounting();
+  const { journalEntries, trialBalance, reverseJournalEntry, accounts, activeLedger } = useAccounting();
 
   const [searchTerm, setSearchTerm] = useState(highlightEntryNumber || '');
   const [sourceFilter, setSourceFilter] = useState<string>('all');
@@ -83,11 +85,20 @@ export const GeneralLedgerView: React.FC<GeneralLedgerViewProps> = ({
       {/* GL Health & Summary Banner */}
       <div className="p-4 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <BookOpen className="h-4 w-4 text-neutral-500" />
             <h2 className="text-xs font-semibold tracking-wide uppercase text-neutral-600 dark:text-neutral-300">
               Double-Entry General Ledger Stream
             </h2>
+            {activeLedger && (
+              <span className="font-mono text-[10px] px-2 py-0.5 rounded-md bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-1.5">
+                <span>{activeLedger.code}</span>
+                <span className="text-neutral-400">·</span>
+                <span className="uppercase text-[9px] font-sans text-neutral-500">{activeLedger.type}</span>
+                <span className="text-neutral-400">·</span>
+                <span>{activeLedger.currencySymbol} {activeLedger.currency}</span>
+              </span>
+            )}
           </div>
           <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
             Append-only financial transaction book with deterministic debit and credit reconciliation
@@ -183,6 +194,17 @@ export const GeneralLedgerView: React.FC<GeneralLedgerViewProps> = ({
           >
             Collapse All
           </button>
+          {onOpenNewLedgerModal && (
+            <button
+              type="button"
+              onClick={onOpenNewLedgerModal}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors font-medium shadow-xs"
+              title="Create a new statutory, management, or multi-currency ledger book"
+            >
+              <BookOpen className="h-3.5 w-3.5 text-neutral-500" />
+              <span>+ New Ledger</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={onOpenJournalModal}

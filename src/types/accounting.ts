@@ -89,6 +89,7 @@ export interface Customer {
   address: CustomerAddress;
   tin: string; // e.g. "204-589-112-00000" (BIR TIN format)
   branchCode: string; // "00000" for head office
+  rdoCode?: string; // BIR Revenue District Office (e.g. "RDO 044 - Taguig / Pateros")
   businessStyle: string; // e.g. "Information Technology Services" (BIR mandatory)
   isVatRegistered: boolean;
   paymentTerms: PaymentTerms;
@@ -186,6 +187,7 @@ export interface RecurringSchedule {
 }
 
 export interface CompanyProfile {
+  id?: string;
   name: string;
   legalName: string;
   tradeName: string;
@@ -210,6 +212,23 @@ export interface CompanyProfile {
     routingNumber: string;
     swiftCode: string;
   };
+}
+
+export type LedgerType = 'statutory' | 'management' | 'currency' | 'subsidiary';
+
+export interface GeneralLedgerBook {
+  id: string;
+  companyId: string;
+  name: string;
+  code: string;
+  type: LedgerType;
+  currency: string;
+  currencySymbol: string;
+  fiscalYear: string;
+  isPrimary: boolean;
+  status: 'active' | 'closed' | 'archived';
+  description: string;
+  createdAt: string;
 }
 
 // BIR Form 2307 Record (Certificate of Creditable Tax Withheld at Source)
