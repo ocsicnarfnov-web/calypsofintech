@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { AccountingProvider } from './context/AccountingContext';
 import { AppSidebar } from './components/layout/AppSidebar';
 import { AppHeader } from './components/layout/AppHeader';
@@ -13,6 +14,7 @@ import { GeneralLedgerView } from './components/ledger/GeneralLedgerView';
 import { ChartOfAccountsView } from './components/accounts/ChartOfAccountsView';
 import { ReportsView } from './components/reports/ReportsView';
 import { CustomersView } from './components/customers/CustomersView';
+import { UserManagementView } from './components/users/UserManagementView';
 import { InvoiceModal } from './components/billing/InvoiceModal';
 import { InvoiceDetailModal } from './components/billing/InvoiceDetailModal';
 import { RecordPaymentModal } from './components/billing/RecordPaymentModal';
@@ -23,6 +25,8 @@ import { CustomerModal } from './components/customers/CustomerModal';
 import { ArchitectureModal } from './components/architecture/ArchitectureModal';
 import { RenderDeployModal } from './components/deploy/RenderDeployModal';
 import { SupabaseDeployModal } from './components/deploy/SupabaseDeployModal';
+import { CompanyProfileModal } from './components/profile/CompanyProfileModal';
+import { AuthModal } from './components/auth/AuthModal';
 import { Account, Customer, Invoice } from './types/accounting';
 
 function AppContent() {
@@ -58,6 +62,9 @@ function AppContent() {
   const [isArchitectureModalOpen, setIsArchitectureModalOpen] = useState(false);
   const [isDeployModalOpen, setIsDeployModalOpen] = useState(false);
   const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
+  const [isCompanyProfileModalOpen, setIsCompanyProfileModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
 
   const [selectedInvoiceForDetail, setSelectedInvoiceForDetail] = useState<Invoice | null>(null);
   const [selectedInvoiceForPayment, setSelectedInvoiceForPayment] = useState<Invoice | null>(null);
@@ -78,6 +85,11 @@ function AppContent() {
     setCurrentView('ledger');
   };
 
+  const handleOpenAuth = (mode: 'login' | 'register' = 'login') => {
+    setAuthModalMode(mode);
+    setIsAuthModalOpen(true);
+  };
+
   return (
     <div className="min-h-screen flex bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 transition-colors">
       {/* Sidebar Navigation */}
@@ -89,6 +101,7 @@ function AppContent() {
         }}
         onOpenArchitectureModal={() => setIsArchitectureModalOpen(true)}
         onOpenSupabaseModal={() => setIsSupabaseModalOpen(true)}
+        onOpenCompanyProfileModal={() => setIsCompanyProfileModalOpen(true)}
       />
 
       {/* Main Viewport Content */}
@@ -105,6 +118,12 @@ function AppContent() {
           onOpenArchitectureModal={() => setIsArchitectureModalOpen(true)}
           onOpenDeployModal={() => setIsDeployModalOpen(true)}
           onOpenSupabaseModal={() => setIsSupabaseModalOpen(true)}
+          onOpenCompanyProfileModal={() => setIsCompanyProfileModalOpen(true)}
+          onOpenAuthModal={handleOpenAuth}
+          onNavigateToUsers={() => {
+            setCurrentView('users');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
         />
 
         <main className="flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto">
@@ -158,6 +177,12 @@ function AppContent() {
                 setIsInvoiceModalOpen(true);
               }}
               onSelectInvoice={(inv) => setSelectedInvoiceForDetail(inv)}
+            />
+          )}
+
+          {currentView === 'users' && (
+            <UserManagementView
+              onOpenRegisterModal={() => handleOpenAuth('register')}
             />
           )}
         </main>
@@ -233,14 +258,27 @@ function AppContent() {
         isOpen={isSupabaseModalOpen}
         onClose={() => setIsSupabaseModalOpen(false)}
       />
+
+      <CompanyProfileModal
+        isOpen={isCompanyProfileModalOpen}
+        onClose={() => setIsCompanyProfileModalOpen(false)}
+      />
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        initialMode={authModalMode}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
     </div>
   );
 }
 
 export default function App() {
   return (
-    <AccountingProvider>
-      <AppContent />
-    </AccountingProvider>
+    <AuthProvider>
+      <AccountingProvider>
+        <AppContent />
+      </AccountingProvider>
+    </AuthProvider>
   );
 }

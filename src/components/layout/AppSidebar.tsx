@@ -11,6 +11,8 @@ import {
   Cpu,
   FileCheck2,
   Database,
+  Building2,
+  UserCog,
 } from 'lucide-react';
 import { useAccounting } from '../../context/AccountingContext';
 
@@ -19,6 +21,7 @@ interface AppSidebarProps {
   onSelectView: (view: string) => void;
   onOpenArchitectureModal: () => void;
   onOpenSupabaseModal?: () => void;
+  onOpenCompanyProfileModal?: () => void;
 }
 
 export const AppSidebar: React.FC<AppSidebarProps> = ({
@@ -26,6 +29,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   onSelectView,
   onOpenArchitectureModal,
   onOpenSupabaseModal,
+  onOpenCompanyProfileModal,
 }) => {
   const { trialBalance, resetToDemoData, companyProfile } = useAccounting();
 
@@ -36,6 +40,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
     { id: 'accounts', label: 'Chart of Accounts', icon: FolderTree },
     { id: 'reports', label: 'Books of Accounts & Tax', icon: Scale },
     { id: 'customers', label: 'Taxpayers & AR', icon: Users },
+    { id: 'users', label: 'Account Management', icon: UserCog },
   ];
 
   const handleReset = () => {
@@ -119,6 +124,21 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
             </span>
           </div>
         </div>
+
+        {/* Company Tax Profile */}
+        {onOpenCompanyProfileModal && (
+          <button
+            type="button"
+            onClick={onOpenCompanyProfileModal}
+            className="w-full flex items-center justify-between px-3 py-2 text-xs text-neutral-300 hover:text-white rounded-lg hover:bg-neutral-800/60 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Building2 className="h-3.5 w-3.5 text-neutral-400" />
+              <span>Company Tax Profile</span>
+            </div>
+            <span className="text-[10px] font-mono text-neutral-400">BIR</span>
+          </button>
+        )}
 
         {/* System Architecture Specs */}
         <button

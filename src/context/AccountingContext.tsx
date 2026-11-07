@@ -147,6 +147,7 @@ interface AccountingContextType {
   toggleRecurringSchedule: (id: string) => void;
   runRecurringSchedule: (id: string) => { success: boolean; invoiceId?: string };
   resetToDemoData: () => void;
+  updateCompanyProfile: (profile: Partial<CompanyProfile>) => void;
   // BIR Books of Accounts
   getSalesJournal: () => BirSalesJournalRow[];
   getCashReceiptsJournal: () => BirCashReceiptsRow[];
@@ -210,7 +211,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   });
 
-  const [companyProfile] = useState<CompanyProfile>(() => {
+  const [companyProfile, setCompanyProfile] = useState<CompanyProfile>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.COMPANY);
       return saved ? JSON.parse(saved) : INITIAL_COMPANY_PROFILE;
@@ -218,6 +219,18 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       return INITIAL_COMPANY_PROFILE;
     }
   });
+
+  const updateCompanyProfile = (updates: Partial<CompanyProfile>) => {
+    setCompanyProfile((prev) => {
+      const next = { ...prev, ...updates };
+      try {
+        localStorage.setItem(STORAGE_KEYS.COMPANY, JSON.stringify(next));
+      } catch (e) {
+        console.error('Failed to save company profile', e);
+      }
+      return next;
+    });
+  };
 
   // Local storage synchronization
   useEffect(() => {
@@ -1119,6 +1132,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         toggleRecurringSchedule,
         runRecurringSchedule,
         resetToDemoData,
+        updateCompanyProfile,
         getSalesJournal,
         getCashReceiptsJournal,
         getBir2307Records,
